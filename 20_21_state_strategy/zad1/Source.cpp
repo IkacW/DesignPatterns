@@ -1,83 +1,83 @@
 ﻿#include<iostream>
 
-class Osoba;
+class Person;
 
-class Raspolozenje { // stanje
+class Mood { // stanje
 public:
-	virtual void radi(Osoba*) = 0;
-	virtual void zabavljajSe(Osoba*) = 0;
-	virtual ~Raspolozenje() {}
+	virtual void work(Person*) = 0;
+	virtual void haveFun(Person*) = 0;
+	virtual ~Mood() {}
 };
 
-class Osoba {
-	std::string ime;
-	std::string prezime;
-	Raspolozenje* raspolozenje;
+class Person {
+	std::string name;
+	std::string last_name;
+	Mood* mood;
 public:
-	Osoba(const std::string& ime, const std::string& prezime);
-	std::string dajIme() const { return ime; }
-	std::string dajPrezime() const { return prezime; }
-	void postaviRaspolozenje(Raspolozenje* raspolozenje) {
-		this->raspolozenje = raspolozenje;
+	Person(const std::string& name, const std::string& last_name);
+	std::string getName() const { return name; }
+	std::string getLastName() const { return last_name; }
+	void setMood(Mood* mood) {
+		this->mood = mood;
 	}
-	void radi() { raspolozenje->radi(this); }
-	void zabavljajSe() { raspolozenje->zabavljajSe(this); }
-	~Osoba() { delete raspolozenje; }
+	void work() { mood->work(this); }
+	void haveFun() { mood->haveFun(this); }
+	~Person() { delete mood; }
 };
 
-class DobroRaspolozenje : public Raspolozenje {
-	void radi(Osoba* o) override; // U implementacijama koristićemo klasu LoseRaspolozenje,
-	// koja je kasnije definisana, pa je i implementacija ovih metoda premeštena
-	void zabavljajSe(Osoba* o) override;
+class GoodMood : public Mood {
+	void work(Person* o) override; 
+	//in implementation we will use class BadMood which is later used, so this definition is moved
+	void haveFun(Person* o) override;
 };
 
-class LoseRaspolozenje : public Raspolozenje {
-	void radi(Osoba* o) override {
-		std::cout << "Osoba " << o->dajIme() << " "
-			<< o->dajPrezime() << " radi i lose je raspolozena!\n";
+class BadMood : public Mood {
+	void work(Person* o) override {
+		std::cout << "Person " << o->getName() << " "
+			<< o->getLastName() << " works and is in bad mood!\n";
 		if (rand() % 4 == 0) {
-			o->postaviRaspolozenje(new DobroRaspolozenje());
-			delete this; // Sasvim je u redu da objekat obriše sam sebe
+			o->setMood(new GoodMood());
+			delete this; 
 		}
 	}
-	void zabavljajSe(Osoba* o) override {
-		std::cout << "Osoba " << o->dajIme() << " "
-			<< o->dajPrezime() << " se zabavlja i lose je raspolozena!\n";
+	void haveFun(Person* o) override {
+		std::cout << "Person " << o->getName() << " "
+			<< o->getLastName() << " is having fun and is in a bad mood!\n";
 		if (rand() % 10 < 7) {
-			o->postaviRaspolozenje(new DobroRaspolozenje());
+			o->setMood(new GoodMood());
 			delete this;
 		}
 	}
 };
 
-void DobroRaspolozenje::radi(Osoba* o) {
-	std::cout << "Osoba " << o->dajIme() << " "
-		<< o->dajPrezime() << " radi i dobro je raspolozena!\n";
+void GoodMood::work(Person* o) {
+	std::cout << "Person " << o->getName() << " "
+		<< o->getLastName() << " works and is in good mood!\n";
 	if (rand() % 2 == 0) {
-		o->postaviRaspolozenje(new LoseRaspolozenje());
+		o->setMood(new BadMood());
 		delete this;
 	}
 }
-void DobroRaspolozenje::zabavljajSe(Osoba* o) {
-	std::cout << "Osoba " << o->dajIme() << " "
-		<< o->dajPrezime() << " se zabavlja i dobro je raspolozena!\n";
+void GoodMood::haveFun(Person* o) {
+	std::cout << "Person " << o->getName() << " "
+		<< o->getLastName() << " is having fun and is in a good mood!\n";
 	if (rand() % 10 == 0) {
-		o->postaviRaspolozenje(new LoseRaspolozenje());
+		o->setMood(new BadMood());
 		delete this;
 	}
 }
 
-Osoba::Osoba(const std::string& ime, const std::string& prezime) :
-	ime(ime), prezime(prezime),
-	raspolozenje(new DobroRaspolozenje()) {}
+Person::Person(const std::string& name, const std::string& last_name) :
+	name(name), last_name(last_name),
+	mood(new GoodMood()) {}
 
 
 int main() {
 	srand(time(0));
-	Osoba* o = new Osoba("Pera", "Peric");
+	Person* o = new Person("Pera", "Peric");
 	for (int i = 0; i < 20; i++) {
-		o->radi();
-		o->zabavljajSe();
+		o->work();
+		o->haveFun();
 	}
 	delete o;
 	return 0;

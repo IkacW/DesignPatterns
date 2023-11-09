@@ -2,42 +2,42 @@
 #include"LogickiIzrazi.h"
 
 /*
-NAPOMENA: da ne bismo radili primer isti kao primer sa predavanja ili kao neki od primera koje je
-radio Dejan Kolundžija, ovde smo se opredelili za pristup kod koga ćemo logičke izraze kreirati pozivima
-funkcija AND, OR, NOT, a koje će kao rezultate vraćati odgovarajuće neterminalne logičke izraze. 
-Koristeći šablone omogućićemo željeno ponašanje i veoma čitljiv kod (nigde u klijentu (main funkciji)
-nećemo eksplicitno kreirati objekte klasa LogickiIzraz (nigde nećemo imati relativno nečitljiv kod poput
-LogickiIzraz* izraz = new LogickoI(new LogickoIli(new Negacija(new Promenljiva("x")), new Konstanta(true)), new Promenljiva("y"));
-Umesto toga, omogućićemo praktičniji i lepši zapis za kreiranje izraza poput:
-auto izraz = AND(OR(NOT(Promenljiva("x")), Konstanta(true)), Promenljiva("y"));
-Štaviše, ići ćemo i korak dalje da omogućimo kreiranje izraza još praktičnijom linijom poput:
+We chose the approach where we will create logical expressions with functions AND, OR, NOT
+that return certan nonterminal logical expressions.
+With the use of templates we enable use of the desired behaviour and clean code (nowhere in program
+(main function) we won't use explicit creation of classes LogicExpression (we won't have an messy code like
+LogicalExpression* expression = new LogicalAnd(new LogicalOr(new Not(new Variable("x")), new Constant(true)),
+new Variable("y"));
+Instead of that, we will make it possible for more practical code declaration, and more readable one like:
+auto izraz = AND(OR(NOT(Variable("x")), Constant(true)), Variable("y"));
+We will go one step further, and we will it possible to use even more pratical line of code like:
 auto izraz = AND(OR(NOT("x"), true), "y")
 */
 
-// Funkcija AND kreiraće objekat tipa LogickoI. 
-// Pogledati fajl LogickiIzrazi.h!
-// LogickoI je šablon klase i zavisi od dva parametra: leva i desna formula. 
-// Obe klase (formule) moraju biti takve da podržavaju poziv metode interpretiraj(Kontekst&) i operatora <<.
-// Mi hoćemo da omogućimo poziv funkcije AND čak i kada se kao neki od operanada nalazi string ili bool.
-// U slučaju argumenta tipa bool treba ga tretirati kao konstantu, a string kao promenljivu. 
-// Ukoliko u vreme komajliranja imamo liniju tipa AND(true, "x") instanciraće se funckija
-// AND<bool, const char*>, međutim ono što treba da vratimo kao rezultat funkcije NIJE tipa
+// Function AND will creato object of type LogicalAnd. 
+// Take a look at the file LogickiIzrazi.h!
+// LogicalAnd is template class and it depends on two parameters: left and right formula. 
+// Both classes (formulas) must have impelmented methods: interpret(Context&) and operator <<.
+// We want to make it possible to call fucntion AND even when some of operands are string or bool.
+// When the operand is bool we wanna treat it as a constant, and string as a variable. 
+// If we have a line like AND(true, "x") at the moment of compiling, that line will instance function
+// AND<bool, const char*>, međutim ono što treba da vratimo kao rezultat functions NIJE tipa
 // LogickoI<bool, const char*> - to bi bili nevalidni parametri šablona (ne postoji metoda interpretiraj
 // za promenljivu tipa bool ili const char*).
 // Očekivani tip rezultata bi zapravo bio LogickoI<Konstanta, Promenljiva>. 
 // Isto tako mogli bismo pozvati AND sa AND(true, true) ili AND(OR("x", "y"), NOT("z")) pri čemu su
 // odgovarajući tipovi rezultata LogickoI<Konstanta, Konstanta> i 
-// LogickoI<LogickoIli<Promenljiva, Promenljiva>, Negacija<Promenljiva>>, a funkcije koje vrše poziv
+// LogickoI<LogickoIli<Promenljiva, Promenljiva>, Negacija<Promenljiva>>, a functions koje vrše poziv
 // AND<bool, bool> i AND<LogickoIli<Promenljiva, Promenljiva>, Negacija<Promenljiva>>. 
-// U drugom slučaju vidimo da je tip rezultata poziva funkcije AND<L, R> tipa LogickoI<L, R>, ali
+// U drugom slučaju vidimo da je tip rezultata poziva functions AND<L, R> tipa LogickoI<L, R>, ali
 // da to ne važi za sve slučajeve (važi samo kada su i L i R formule, a ne const char* ili bool).
-// Tipičan, staromodni, način da razrešimo ovu situaciju je specijalizacijom šablona funkcije. 
-// Da sami "ručno" ispišemo sve moguće funkcije za slučajeve kada je neki od operanada bool, kada je neki
+// Tipičan, staromodni, način da razrešimo ovu situaciju je specijalizacijom šablona functions. 
+// Da sami "ručno" ispišemo sve moguće functions za slučajeve kada je neki od operanada bool, kada je neki
 // const char* ili formula. Dva operanda, tri mogućnosti za svaki, daju ukupno 9 različitih funkcija koje bismo
 // morali da pišemo, tj. imali bismo četiri specijalizacije, četiri parcijalne specijalizacije i jedan šablon
 // sa oba parametra.
-// Srećom, od C++-a 14 kao rezultat funkcije možemo navesti ključnu reč auto ukoliko je moguće u vreme kompajliranja
-// odrediti tip podatka koji se vraća kao rezultat funkcije. 
+// Srećom, od C++-a 14 kao rezultat functions možemo navesti ključnu reč auto ukoliko je moguće u vreme kompajliranja
+// odrediti tip podatka koji se vraća kao rezultat functions. 
 // OD C++-a 17 moguće je korišćenje konstantnih izraza za uslovno grananje. Konstantni izrazi se zapisuju sa
 // constexpr(izraz), pri čemu izraz mora biti izraz čija je vrednost poznata u vreme kompajliranja. 
 // Kombinovanjem constexpr za grananje i ključne reči auto, kao i utvrđivanjem da li je neki od tipova Leva i Desna
@@ -86,7 +86,7 @@ auto AND(const Leva leva, const Desna desna) {
 }
 
 
-// Sada sve isto radimo za šablon funkcije OR koja treba da kreira odgovarajući objekat LogickoIli<...,...>
+// Sada sve isto radimo za šablon functions OR koja treba da kreira odgovarajući objekat LogickoIli<...,...>
 template<typename Leva, typename Desna>
 auto OR(const Leva leva, const Desna desna) {
 	if constexpr (std::is_same<Leva, bool>::value) {

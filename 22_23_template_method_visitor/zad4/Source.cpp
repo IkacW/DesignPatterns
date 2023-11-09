@@ -1,95 +1,81 @@
 ﻿#include<iostream>
 
-class Posetilac;
+class Visitor;
 
 class Element {
 protected:
-	int stanje;
+	int state;
 public:
-	Element(int stanje): stanje(stanje) {}
-	int dajStanje() const { return stanje; }
-	virtual void osnovnaFunkcionalnost() = 0; // ova metoda je tu da naglasimo da klase iz
-	// hijerarhije Element već nešto "rade", a da su posetioci tu da pruže dodatne funkcionalnosti.
-
-	// Naredna metoda je imenovana izvrsiNovuOperaciju da bi bolje asocirala na ono čemu služi. Na
-	// UML-u i u terminologiji projektnog uzorka Posetilac ta metoda se često naziva prihvati (engl. accept),
-	// što ne deluje previše informativno.
-	virtual void izvrsiNovuOperaciju(Posetilac*) = 0;
+	Element(int state): state(state) {}
+	int getState() const { return state; }
+	virtual void baseFunctionality() = 0;
+	// this method is here just to simulate that this class is 'doing something' in real use, and
+	// visitors are here to add more functionalities to this class without touching it
+	
+	// It's named like this just to be more clear what the purpose is of visitor, but it's often named accept.
+	virtual void executeNewFunctionality(Visitor*) = 0;
 	virtual ~Element() {}
 };
 
-class KonkretniElementA : public Element {
+class ConcreteElementA : public Element {
 public:
 	using Element::Element;
-	void osnovnaFunkcionalnost() override { std::cout << "Osnovna funkcionalnost A" << std::endl; }
-	void izvrsiNovuOperaciju(Posetilac*) override; // Zbog redosleda definisanja klasa, 
-	// ova implementacija biće data naknadno, van klase.
+	void baseFunctionality() override { std::cout << "Base functionality A" << std::endl; }
+	void executeNewFunctionality(Visitor*) override; // Will be implemented later in a code
+	// because of class implementation order .
 };
 
-class KonkretniElementB : public Element {
+class ConcreteElementB : public Element {
 public:
 	using Element::Element;
-	void osnovnaFunkcionalnost() override { std::cout << "Osnovna funkcionalnost B" << std::endl; }
-	void izvrsiNovuOperaciju(Posetilac*) override; // implementacija je data naknadno.
-};
+	void baseFunctionality() override { std::cout << "Base functionality B" << std::endl; }
+	void executeNewFunctionality(Visitor*) override; 
 
-class Posetilac {
+class Visitor {
 public:
-	// Ovo je bitno: posetilac mora da zna kako da "poseti" svaku konkretnu klasu. 
-	// Ovde je u kodu ostala originalna terminologija "poseti" (engl. visit), mada bi opet
-	// informativnije bilo da smo te metode nazvali "izvrši" i sl. 
-	virtual void poseti(KonkretniElementA*) = 0;
-	virtual void poseti(KonkretniElementB*) = 0;
-	virtual ~Posetilac() {}
+	// This is important: visitor must know how to 'visit' every concrete class . 
+	virtual void visit(ConcreteElementA*) = 0;
+	virtual void visit(ConcreteElementB*) = 0;
+	virtual ~Visitor() {}
 };
 
-class NovaOperacija1 : public Posetilac {
+class NewOperation1 : public Visitor {
 public:
-	void poseti(KonkretniElementA* a) override {
-		std::cout << "Izvrsavam novu operaciju 1 nad elementom klase KonkretniElementA sa stanjem " << a->dajStanje() << std::endl;
+	void visit(ConcreteElementA* a) override {
+		std::cout << "Executing new operation 1 on ConcreteElementA with state" << a->getState() << std::endl;
 	}
-	void poseti(KonkretniElementB* a) override {
-		std::cout << "Izvrsavam novu operaciju 1 nad elementom klase KonkretniElementB sa stanjem " << a->dajStanje() << std::endl;
+	void visit(ConcreteElementB* a) override {
+		std::cout << "Executing new operation 1 on ConcreteElementB with state " << a->getState() << std::endl;
 	}
 };
 
-class NovaOperacija2 : public Posetilac {
+class NewOperation2 : public Visitor {
 public:
-	void poseti(KonkretniElementA* a) override {
-		std::cout << "Izvrsavam novu operaciju 2 nad elementom klase KonkretniElementA sa stanjem " << a->dajStanje() << std::endl;
+	void visit(ConcreteElementA* a) override {
+		std::cout << "Executing new operation 2 on ConcreteElementA with state " << a->getState() << std::endl;
 	}
-	void poseti(KonkretniElementB* a) override {
-		std::cout << "Izvrsavam novu operaciju 2 nad elementom klase KonkretniElementB sa stanjem " << a->dajStanje() << std::endl;
+	void visit(ConcreteElementB* a) override {
+		std::cout << "Executing new operation 2 on ConcreteElementB with state " << a->getState() << std::endl;
 	}
 };
 
-// Cena toga što dodajemo nove funkcionalnosti van hijerarhije naših postojećih klasa je to 
-// što postojeće klase treba samo da izvrše sledeću jednostavnu implementaciju metode 
-// izvrsiNovuOperaciju (ili accept())
-void KonkretniElementA::izvrsiNovuOperaciju(Posetilac* p) {
-	p->poseti(this);
+void ConcreteElementA::executeNewFunctionality(Visitor* p) {
+	p->visit(this);
 }
 
-void KonkretniElementB::izvrsiNovuOperaciju(Posetilac* p) {
-	p->poseti(this);
+void ConcreteElementB::executeNewFunctionality(Visitor* p) {
+	p->visit(this);
 }
-// Primećujemo da je implementacija metode izvrsiNovuOperaciju ista u obe izvedene klase.
-// Zašto nismo mogli da onda implementaciju prebacimo u roditeljsku klasu, Element?
-// Odgovor leži u tome što je u klasi Element this tipa Element*. Koju tačno metodu 
-// posetioca treba pozvati ako izvršimo poziv posetilac->poseti(element), 
-// gde je element tipa Element*? Ne možemo znati. Upravo zato je nepohodno da u izvedenim klasama
-// dodamo kod za "posećivanje". U izvedenoj klasi this je tipa IzvedenaKlasa*, a za izvedene klase
-// imamo metode poseti i nema dileme koju treba pozvati. 
 
 int main() {
-	Element* e1 = new KonkretniElementA(123);
-	Element* e2 = new KonkretniElementB(321);
-	Posetilac* p1 = new NovaOperacija1();
-	Posetilac* p2 = new NovaOperacija2();
-	e1->izvrsiNovuOperaciju(p1);
-	e1->izvrsiNovuOperaciju(p2);
-	e2->izvrsiNovuOperaciju(p1);
-	e2->izvrsiNovuOperaciju(p2);
+	Element* e1 = new ConcreteElementA(123);
+	Element* e2 = new ConcreteElementB(321);
+	Visitor* p1 = new NewOperation1();
+	Visitor* p2 = new NewOperation2();
+	e1->executeNewFunctionality(p1);
+	e1->executeNewFunctionality(p2);
+	e2->executeNewFunctionality(p1);
+	e2->executeNewFunctionality(p2);
 
 	delete e1;
 	delete e2;

@@ -42,14 +42,14 @@ class Client {
             m_documents[i]->close();
         }
     }
-    void newDocument(string ime) {
+    void newDocument(string first_name) {
         cout << "Client.newDocument()" << endl;
-        m_documents.push_back(makeDocument(ime));
+        m_documents.push_back(makeDocument(first_name));
         m_documents.back()->open();
     }
     void documentReports();
     /* factory method */
-    virtual Document *makeDocument(string ime) = 0;
+    virtual Document *makeDocument(string first_name) = 0;
   private:
     vector<Document*> m_documents;
 };

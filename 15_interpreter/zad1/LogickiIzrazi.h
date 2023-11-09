@@ -6,7 +6,7 @@ class Kontekst {
 private:
 	std::unordered_map<std::string, bool> vrednosti;
 public:
-	bool vrednost(std::string kljuc) {
+	bool value(std::string kljuc) {
 		return vrednosti[kljuc];
 	}
 	bool& operator[] (std::string kljuc) { return vrednosti[kljuc]; }
@@ -28,32 +28,27 @@ public:
 
 class Konstanta : public LogickiIzraz {
 private:
-	bool vrednost;
+	bool value;
 public:
-	Konstanta(bool vrednost) : vrednost(vrednost) {}
-	bool interpretiraj(Kontekst&) const override { return vrednost; }
-	void ispisi() const override { std::cout << vrednost; } 
-	friend std::ostream& operator << (std::ostream& stream, const Konstanta& k) { stream << k.vrednost; return stream; }
+	Konstanta(bool value) : value(value) {}
+	bool interpretiraj(Kontekst&) const override { return value; }
+	void ispisi() const override { std::cout << value; } 
+	friend std::ostream& operator << (std::ostream& stream, const Konstanta& k) { stream << k.value; return stream; }
 };
 
 class Promenljiva : public LogickiIzraz {
 private:
-	std::string ime;
+	std::string first_name;
 public:
-	Promenljiva(const std::string& ime) : ime(ime) {}
+	Promenljiva(const std::string& first_name) : first_name(first_name) {}
 	bool interpretiraj(Kontekst& kontekst) const override {
-		return kontekst.vrednost(ime);
+		return kontekst.value(first_name);
 	}
-	friend std::ostream& operator << (std::ostream& stream, const Promenljiva& p) { stream << p.ime; return stream; }
-	void ispisi() const override { std::cout << ime; }
+	friend std::ostream& operator << (std::ostream& stream, const Promenljiva& p) { stream << p.first_name; return stream; }
+	void ispisi() const override { std::cout << first_name; }
 };
 
 
-/* Kod narednih neterminalnih izraza (LogickoIli, LogickoI, Negacija) ideja je slična kao kod
-odloženog izračunavanja. Koristićemo statički polimorfizam. 
-Levi operand i desni operand logičkog veznika može biti bilo koja formula,
-tačnije, po bilo koja klasa sa metodom interpretiraj(Kontekst) i preklopljenim operatorom << 
-*/
 template<typename LevaFormula, typename DesnaFormula>
 class LogickoIli : public LogickiIzraz {
 private:

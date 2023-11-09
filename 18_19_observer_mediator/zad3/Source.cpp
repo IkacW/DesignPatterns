@@ -3,121 +3,114 @@
 #include<vector>
 
 /*
-Ovde ćemo imati jedno drugačije korišćenje posmatrača. 
-Za neke strukure ćemo "prikačiti" funkcije kojim ćemo inkrementalno ažurirati 
-vrednosti minimuma, maksimuma, itd. 
-Pretpostavka zadatka je da ćemo samo dodavati elemente pa nam za ažuriranje
-vrednosti ne treba cela struktura podataka, već samo novi element koji je dodat.
+For some functions we will 'add' functions with which we will incrementaly update values of 
+miminum, maximum, etc.
 */
 
-class Funkcija {
+class Function {
 public:
-	virtual void azuriraj(int) = 0;
-	virtual int f() const = 0; // vraća vrednost funkcije
-	virtual std::string opis() const = 0; // služiće nam samo za ispis kasnije
+	virtual void update(int) = 0;
+	virtual int f() const = 0; // returns a value of the function
+	virtual std::string description() const = 0; // outputs the result
 };
 
-class Suma : public Funkcija {
+class Sum : public Function {
 	int s = 0;
 public:
-	void azuriraj(int nova_vrednost) override {
-		s += nova_vrednost;
+	void update(int new_value) override {
+		s += new_value;
 	}
-	std::string opis() const override { return "Suma"; }
+	std::string description() const override { return "Sum"; }
 	int f() const { return s; }
 };
 
-class Velicina : public Funkcija {
-	int br = 0;
+class Size : public Function {
+	int counter = 0;
 public:
-	void azuriraj(int) override {
-		br++;
+	void update(int) override {
+		counter++;
 	}
-	std::string opis() const override { return "Velicina"; }
-	int f() const { return br; }
+	std::string description() const override { return "Size"; }
+	int f() const { return counter; }
 };
 
-class Min : public Funkcija {
+class Min : public Function {
 	int min = INT_MAX;
 public:
-	void azuriraj(int nova_vrednost) override {
-		min = nova_vrednost < min ? nova_vrednost : min;
+	void update(int new_value) override {
+		min = new_value < min ? new_value : min;
 	}
-	std::string opis() const override { return "Min"; }
+	std::string description() const override { return "Min"; }
 	int f() const { return min; }
 };
 
-class Max : public Funkcija {
+class Max : public Function {
 	int max = INT_MIN;
 public:
-	void azuriraj(int nova_vrednost) override {
-		max = nova_vrednost > max ? nova_vrednost : max;
+	void update(int new_value) override {
+		max = new_value > max ? new_value : max;
 	}
-	std::string opis() const override { return "Max"; }
+	std::string description() const override { return "Max"; }
 	int f() const { return max; }
 };
 
-class Kolekcija {
+class Collection {
 protected:
-	//azurirajFunkcije ~ notify
-	void azurirajFunkcije(int nova_vrednost) { for (auto f : funkcije) f->azuriraj(nova_vrednost); }
-	std::vector<Funkcija*> funkcije;
+	void updateFunctions(int new_value) { for (auto f : functions) f->update(new_value); } // notify
+	std::vector<Function*> functions;
 public:
-	virtual void dodajElement(int element) = 0;
-	std::vector<Funkcija*> dajFunkcije() const { return funkcije; }
-	void dodajFunkciju(Funkcija* f) { funkcije.push_back(f); }
+	virtual void addElement(int element) = 0;
+	std::vector<Function*> getFunctions() const { return functions; }
+	void addFunction(Function* f) { functions.push_back(f); }
 };
 
 #define MAX_VELICINA 100
 
-class Stek : public Kolekcija {
-	int vrh = 0;
-	int niz[MAX_VELICINA];
+class Stack : public Collection {
+	int top = 0;
+	int arr[MAX_VELICINA];
 public:
-	void dodajElement(int element) override {
-		niz[vrh++] = element;
-		azurirajFunkcije(element);
+	void addElement(int element) override {
+		arr[top++] = element;
+		updateFunctions(element);
 	}
 };
 
-struct Cvor {
-	Cvor* sledeci;
-	int vrednost;
-	Cvor(int vrednost, Cvor* sledeci=nullptr): vrednost(vrednost), sledeci(sledeci) {}
+struct Node {
+	Node* next;
+	int value;
+	Node(int value, Node* next=nullptr): value(value), next(next) {}
 };
 
-class JednostrukoPovezanaLista : public Kolekcija {
-	Cvor* glava = nullptr;
+class SingleLinkedList : public Collection {
+	Node* head = nullptr;
 public:
-	void dodajElement(int element) override {
-		if (!glava) { glava = new Cvor(element); }
+	void addElement(int element) override {
+		if (!head) { head = new Node(element); }
 		else {
-			Cvor* tmp = glava;
-			glava = new Cvor(element, tmp);
+			Node* tmp = head;
+			head = new Node(element, tmp);
 		}
-		azurirajFunkcije(element);
+		updateFunctions(element);
 	}
 };
 
 int main() {
-	Kolekcija* k = new Stek();
-	k->dodajFunkciju(new Velicina());
-	k->dodajFunkciju(new Suma());
-	k->dodajFunkciju(new Min());
-	k->dodajFunkciju(new Max());
+	Collection* k = new Stack();
+	k->addFunction(new Size());
+	k->addFunction(new Sum());
+	k->addFunction(new Min());
+	k->addFunction(new Max());
 
-	k->dodajElement(1);
-	k->dodajElement(11);
-	k->dodajElement(-1);
-	k->dodajElement(100);
-	k->dodajElement(2);
-	k->dodajElement(3);
+	k->addElement(1);
+	k->addElement(11);
+	k->addElement(-1);
+	k->addElement(100);
+	k->addElement(2);
+	k->addElement(3);
 
-	// Kad god je tip podataka dostupan u vreme kompajliranja, možemo koristiti ključnu reč 
-	// auto umesto tipa (naročito praktično ako nam je naporno pišemo pun naziv tipa
-	// poput std::vector<Funkcija*>
-	auto funkcije = k->dajFunkcije();
-	for (auto f : funkcije) {
-		std::cout << "Vrednost funkcije " << f->opis() << " je " << f->f() << std::endl;
+	auto functions = k->getFunctions();
+	for (auto f : functions) {
+		std::cout << "Value of " << f->description() << " function is" << f->f() << std::endl;
 	}
 }

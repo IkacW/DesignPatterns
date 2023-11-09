@@ -3,9 +3,10 @@
 #include<unordered_map>
 
 /*
-U ovom primeru videćemo situaciju u kojoj redosled handler-a ima uticaj na uspešnost i efikasnost razrešenja
-zahteva. Ovde zahtev neće imati oznaku kojom odlučujemo da li određeni handler može da ga obradi, već će
-svaki handler na osnovu svoje logike i samog zahteva odlučiti da li može da obradi dati zahtev.
+In this case, we will see the situation where the order of handlers plays a big role in the time
+efficiency of completing tasks. The request is not telling us if some specified handler could handle 
+the request. Every handler, through hes logic, will decide if he can handle the request or to pass the 
+request to another handler.
 */
 
 class WebPage {
@@ -19,10 +20,10 @@ protected:
 	InternetServiceHandler* next;
 public:
 	virtual WebPage* getPage(const std::string& url, const std::string& ip) {
-		// Često se osnovna klasa handler-a implementira tako da metoda za obradu zahteva nije apstraktna, već
-		// da ima zadatak samo da prosledi zahtev dalje. Sada je zadatak izvedenih klasa da obrade zahtev ukoliko mogu, 
-		// a u suprotnom treba da proslede zahtev osnovnoj klasi. Tako u izvedenoj klasi potpuno "krijemo" da uopšte postoje
-		// drugi handler-i, tj. sledeći handler.
+		// It's not rare for base class handler not to have the abstract method that handles the request, 
+		// because it has the simple solution, just to pass it to another handler. Now the purpose of derived 
+		// classes is to handle the request if that is possible (if they can do it), otherwise, they should 
+		// pass the request to the next hadler, if there is one.
 		if (next) { return next->getPage(url, ip); }
 		return nullptr;
 	}
@@ -63,7 +64,7 @@ public:
 				cache[url] = page;
 			return page;
 		} else {
-			std::cout << "Vracam kesiran sadrzaj sa adrese " << url << std::endl;
+			std::cout << "Vracam kesiran content sa adrese " << url << std::endl;
 			return cache[url];
 		}
 	}
@@ -82,26 +83,26 @@ int main() {
 
 	WebPage* p1 = handler1->getPage("www.nesto.com", "12.32.43.154");
 	if (p1) {
-		std::cout << "Uspesno preuzet sadrzaj sa adrese " << p1->url << std::endl;
+		std::cout << "Successfully downloaded contet from adress: " << p1->url << std::endl;
 	}
 	else {
-		std::cout << "Neuspesno preuzet sadrzaj sa adrese www.nesto.com i preko ip adrese 12.32.43.154" << std::endl;
+		std::cout << "Failed to download content from adress www.nesto.com and from ip adress 12.32.43.154" << std::endl;
 	}
 
 	WebPage* p2 = handler1->getPage("www.nesto.com", "12.32.43.1");
 	if (p2) {
-		std::cout << "Uspesno preuzet sadrzaj sa adrese " << p2->url << std::endl;
+		std::cout << "Successfully downloaded contet from adress " << p2->url << std::endl;
 	}
 	else {
-		std::cout << "Neuspesno preuzet sadrzaj sa adrese www.nesto.com i preko ip adrese 12.32.43.154" << std::endl;
+		std::cout << "Failed to download content from adress www.nesto.com and from ip adress 12.32.43.1" << std::endl;
 	}
 
 	WebPage* p3 = handler1->getPage("www.nesto.com", "12.32.43.1");
 	if (p3) {
-		std::cout << "Uspesno preuzet sadrzaj sa adrese " << p3->url << std::endl;
+		std::cout << "Successfully downloaded contet from adress " << p3->url << std::endl;
 	}
 	else {
-		std::cout << "Neuspesno preuzet sadrzaj sa adrese www.nesto.com i preko ip adrese 12.32.43.154" << std::endl;
+		std::cout << "Failed to download content from adress www.nesto.com and from ip adress 12.32.43.1" << std::endl;
 	}
 	return 0;
 }

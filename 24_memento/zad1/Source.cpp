@@ -18,22 +18,18 @@ public:
 		this->state = m->getState();
 	}
 	Memento* createMemento() const { return new Memento(state); }
-	void modifyState() { // Da naglasimo da stanje objekta može da se u toku životnog veka
-		// objekta modifikuje (šta će nam inače Memento...)
+	void modifyState() { 
 		std::cout << "Modifikujem stanje objekta\n";
-		state += std::to_string(rand() % 10); // prosto ćemo dopisati nasumičnu cifru
+		state += std::to_string(rand() % 10); 
 	}
-	// Da opravdamo potrebu za korišćenjem Podsetnika, nećemo imati geter za stanje.
-	// Ipak, da bismo kasnije u main-u štampali objekat i testirali vraćanje na prethodno stanje,
-	// ovde ćemo dodati jedan "zamaskirani" geter koji daje opis objekta na način da upravo vraća
-	// njegovo stanje. Imajte na umu da je ovde naglasak na komunikaciji klasa!
+	
 	std::string describe() const { return state; }
 };
 
 class Caretaker {
-	const Memento* m; // Bitan detalj je da ne smemo dozvoliti modifikaciju podsetnika.
-	// To smo mogli da postignemo i time što ne bismo imali setere u klasi Memento.
-	// Ovde je implementiran najosnovniji slučaj gde Caretaker čuva samo jedan podsetnik.
+	const Memento* m; // It's important to prohibit modification of memento.
+	// That could be accomplishe with not implementing setters to memento class.
+	// That could be accomplished by not implementing setters in the memento class.
 public:
 	void setMemento(const Memento* m) { 
 		std::cout << "Cuvam novi podsetnik\n";

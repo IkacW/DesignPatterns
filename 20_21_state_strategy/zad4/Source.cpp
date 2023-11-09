@@ -2,87 +2,87 @@
 #include<chrono>
 #define MAX_VREDNOST 10
 
-class AlgoritamSortiranja {
+class SortAlgorithm {
 public:
-	virtual void sortiraj(int* niz, int n) = 0;
-	virtual ~AlgoritamSortiranja() {}
+	virtual void sort(int* arr, int n) = 0;
+	virtual ~SortAlgorithm() {}
 };
 
-class SortiranjePrebrojavanjem : public AlgoritamSortiranja {
+class CountingSort : public SortAlgorithm {
 public:
-	void sortiraj(int* niz, int n) override {
-		int br[MAX_VREDNOST];
+	void sort(int* arr, int n) override {
+		int counter[MAX_VREDNOST];
 		for (int i = 0; i < n; i++)
-			br[niz[i]] += 1;
+			counter[arr[i]] += 1;
 		int i = 0;
-		for (int vrednost = 0; vrednost < MAX_VREDNOST; vrednost++) {
-			for (int b = 0; b < br[vrednost]; b++) {
-				niz[i++] = vrednost;
+		for (int value = 0; value < MAX_VREDNOST; value++) {
+			for (int b = 0; b < counter[value]; b++) {
+				arr[i++] = value;
 			}
 		}
 	}
 };
 
-class SortiranjeSelekcijom : public AlgoritamSortiranja {
+class SelectionSort : public SortAlgorithm {
 public:
-	void sortiraj(int* niz, int n) override {
+	void sort(int* arr, int n) override {
 		for (int i = 0; i < n; i++) {
-			int min = niz[i];
-			int indeks_minimuma = i;
+			int min = arr[i];
+			int index_of_minimum = i;
 			for (int j = i + 1; j < n; j++) {
-				if (niz[j] < min) {
-					min = niz[j];
-					indeks_minimuma = j;
+				if (arr[j] < min) {
+					min = arr[j];
+					index_of_minimum = j;
 				}
 			}
-			int tmp = niz[i];
-			niz[i] = min;
-			niz[indeks_minimuma] = tmp;
+			int tmp = arr[i];
+			arr[i] = min;
+			arr[index_of_minimum] = tmp;
 		}
 	}
 };
 
-class Niz {
-	int* niz;
+class Arr {
+	int* arr;
 	int n;
-	AlgoritamSortiranja* algoritam;
+	SortAlgorithm* algorithm;
 public:
-	Niz(int n): n(n), niz(new int[n]()) {}
-	void postaviAlgoritamSortiranja(AlgoritamSortiranja* algo) {
-		this->algoritam = algo;
+	Arr(int n): n(n), arr(new int[n]()) {}
+	void setSortAlgorithm(SortAlgorithm* alg) {
+		this->algorithm = alg;
 	}
-	int& operator[] (int indeks) { return niz[indeks]; }
-	int operator[] (int indeks) const { return niz[indeks]; }
-	void sortiraj() { algoritam->sortiraj(niz, n); }
-	int velicina() const { return n; }
-	~Niz() { 
-		delete[] niz;
-		niz = nullptr;
+	int& operator[] (int index) { return arr[index]; }
+	int operator[] (int index) const { return arr[index]; }
+	void sort() { algorithm->sort(arr, n); }
+	int size() const { return n; }
+	~Arr() { 
+		delete[] arr;
+		arr = nullptr;
 	}
 };
 
 int main() {
-	Niz a(100000);
-	Niz b(100000);
+	Arr a(100000);
+	Arr b(100000);
 
-	for (int i = 0; i < a.velicina(); i++) {
+	for (int i = 0; i < a.size(); i++) {
 		a[i] = rand() % MAX_VREDNOST;
 		b[i] = rand() % MAX_VREDNOST;
 	}
 
 	auto start = std::chrono::system_clock::now();
-	a.postaviAlgoritamSortiranja(new SortiranjeSelekcijom());
-	a.sortiraj();
+	a.setSortAlgorithm(new SelectionSort());
+	a.sort();
 	auto end = std::chrono::system_clock::now();
 	auto elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	std::cout << "Brzina sortiranja selekcijom: " << elapsed << " mikrosekundi\n";
+	std::cout << "Speed of selection sort: " << elapsed << " microseconds\n";
 	
 	start = std::chrono::system_clock::now();
-	b.postaviAlgoritamSortiranja(new SortiranjePrebrojavanjem());
-	b.sortiraj();
+	b.setSortAlgorithm(new CountingSort());
+	b.sort();
 	end = std::chrono::system_clock::now();
 	elapsed = std::chrono::duration_cast<std::chrono::microseconds>(end - start).count();
-	std::cout << "Brzina sortiranja prebrojavanjem: " << elapsed << " mikrosekundi\n";
+	std::cout << "Speed of counting sort: " << elapsed << " microseconds\n";
 
 	return 0;
 }
